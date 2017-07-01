@@ -1,13 +1,16 @@
 ---
-title: "Craft Beers Analysis"
+title: "Craft Beer Analysis"
+author: "Ashwin Thota"
+date: "June 30, 2017"
 output:
-  html_document:
-    keep_md: true
+  
+  
+  
+  html_document:d
+    keep_md: yes
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ```{r}
 library(plyr)
@@ -17,10 +20,14 @@ head(breweries)
 head(beers) 
 ```
 
-Question 1:
+##Question 1: How many breweries are present in each state?
 
-```{r}
-count(breweries,'State')
+```{r, fig.width=20,fig.height=5}
+brew_count<-count(breweries,'State')
+brew_count
+
+ggplot(data = brew_count,aes(State, freq,fill=freq)) +geom_bar(color="black",stat = "identity")+theme(text=element_text(size=20))+  scale_fill_gradientn(
+colours = terrain.colors(6)) 
 ```
 
 Question 2:
@@ -77,11 +84,7 @@ ggplot(data = IBU_median,aes(State, IBU,fill=IBU)) +geom_bar(color="black",stat 
 colours = heat.colors(6)) 
 ```
 
-```{r}
-library(maps)
-us <- map_data("state")
 
-```
 
 
 Question 5
@@ -101,8 +104,6 @@ ggplot(beer_brew, aes(beer_brew$ABV, beer_brew$IBU))+
 lm.anv_ibu<-lm(beer_brew$ABV~ beer_brew$IBU)
 summary(lm.anv_ibu)
 lm(beer_brew$ABV~ beer_brew$IBU)
-```
-```{r}
-library(knitr)
+
 ```
 

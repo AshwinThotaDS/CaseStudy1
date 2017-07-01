@@ -8,4 +8,5 @@ Data folder has the data sets that I used to perform the analysis
 Analysis folder has:
  CraftBeers_Analysis.Rmd: This is the R- Markdown file, you can download this can run the R script to explore the data yourself
  CraftBeers_Analysis.html: This has the html outpur of the analysis
- CraftBeers_Analysis.md : This markdown file has the detailed analysis along with the graphs. This would be your best bet if you want to     read the complete analysis. Just click here to get started (https://github.com/AshwinThotaDS/CaseStudy1/blob/master/Analysis/CraftBeers_Analysis.md)
+ 
+CraftBeers_Analysis.md : This markdown file has the detailed analysis along with the graphs. This would be your best bet if you want to     read the complete analysis. Just click here to get started (https://github.com/AshwinThotaDS/CaseStudy1/blob/master/CraftBeers_Analysis.md)

@@ -1,0 +1,169 @@
+---
+title: "Craft Beer Analysis"
+author: "Ashwin Thota"
+date: "June 30, 2017"
+output:
+  pdf_document: default
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##Data Set Description:
+Beers dataset contains a list of 2410 US craft beers and Breweries dataset contains 558 US breweries. The datasets descriptions are as follows.
+**Beers.csv:**
+Name: Name of the beer.
+Beer ID: Unique identifier of the beer.
+ABV: Alcohol by volume of the beer.
+IBU: International Bitterness Units of the beer.
+Brewery ID: Brewery id associated with the beer.
+Style: Style of the beer.
+Ounces: Ounces of beer.
+
+**Breweries.csv:**
+Brew ID: Unique identifier of the brewery.
+Name: Name of the brewery.
+City: City where the brewery is located.
+State: State where the brewery is located.
+```{r}
+library(plyr)
+beers <- read.csv("https://raw.githubusercontent.com/AshwinThotaDS/CaseStudy1/master/Data/Beers.csv",header=TRUE)
+breweries<-read.csv("https://raw.githubusercontent.com/AshwinThotaDS/CaseStudy1/master/Data/Breweries.csv",header=TRUE)
+head(breweries)
+head(beers) 
+```
+
+##Question 1: How many breweries are present in each state?
+
+Let's explore the Breweries data set a little further. 
+
+```{r, fig.width=20,fig.height=5}
+brew_count<-count(breweries,'State')
+brew_count
+
+```
+The above table sows us the number of breweries for each state. We can can also visualize the distribution by looking at the below bar plot.
+```{r, fig.width=25,fig.height=8}
+library(ggplot2)
+ggplot(data = brew_count,aes(State, freq,fill=freq)) +geom_bar(color="black",stat = "identity")+theme(text=element_text(size=20))+  scale_fill_gradientn(
+colours = terrain.colors(6))
+```
+We can right aways see that the state of Colorado has highest number of breweries followed by California.
+
+##Question 2:Merge beer data with breweries data by brewery id. Print first 6 observations and the last six observations to check the merged file
+
+As we observed from the structure of the two data sets, we can join them via Brew_ID=Brewery_id. Just to stay consistent with the names, I am renaming Breweries.Brew_ID to Brewery_id.
+
+```{r}
+
+colnames(breweries)[colnames(breweries)=="Brew_ID"]<-"Brewery_id"
+colnames(breweries)
+```
+
+**Merge the data sets together:**
+
+```{r}
+beer_brew<-merge(beers,breweries,by="Brewery_id")
+head(beer_brew)
+```
+**Printing First 6 and Last 6 observations**
+
+```{r}
+head(beer_brew,6)
+tail(beer_brew,6)
+```
+
+##Question 3: Report the number of NA's in each column.
+As we can see from the below table, International Bitterness Units of the beer has 1005 records with blank values and Alcohol by volume has 62 null values.
+We should keep this in mind when we calculate sumamry statistics.
+```{r}
+apply(is.na(beer_brew),2,sum)
+```
+
+##Question 4: Compute the median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+
+First, some definitions.
+**ABV** stands for Alcohol By Volume and is usually listed as a percentage. By law in the United States, the ABV must be listed on each beer to give customers an idea about how much alcohol is in each brew. 
+This percentage lets you know how much of your beer is alcohol and how much is other stuff, like water. Simply put, the higher the ABV, the more drunk you’ll get. Beer can be anywhere between 2% to 12% ABV, though you’ll generally find it in the 4% to 6% range. 
+Like ABV, **IBU** (International Bitterness Units) is another common measurement for beer. Rather than telling us how much alcohol there is, IBU measures the bitterness from hops in a beer on a scale of 0 to 100. In more technical terms, IBU gauges the isomerized alpha acids from hops in a beer in parts per million. Very hoppy beers, like imperial IPAs, can reach 80 BU
+
+In the below peice of conde, we are computing the medians of "Alcohol by volume of the beer" and "International Bitterness Units of the beer"
+As we observed from the previous step, there are a ton of observations with null values. I am interested in understanding the distrubution of the ABV and IBU for the observations that are recorded so I made a decision to omit na's.
+```{r}
+ABV_Median<-aggregate(ABV~State, beer_brew, median,na.action=na.omit)
+IBU_median<-aggregate(IBU~State, beer_brew, median,na.action=na.omit)
+
+```
+The below two chuncks of code makes n attempt to visualize the distributions of ABV and IBU by State.
+```{r, fig.width=25,fig.height=8}
+
+library(reshape2)
+library(ggplot2)
+ggplot(data = ABV_Median,aes(State, ABV,fill=ABV)) +geom_bar(color="black",stat = "identity")+theme(text=element_text(size=20))+ scale_fill_gradientn(
+colours = heat.colors(6)) 
+```
+```{r, fig.width=25,fig.height=8}
+ggplot(data = IBU_median,aes(State, IBU,fill=IBU)) +geom_bar(color="black",stat = "identity")+theme(text=element_text(size=20))+ scale_fill_gradientn(
+colours = heat.colors(6)) 
+```
+We can make some pretty interesting observations from the above two plots. At first, ABV vs State seems like it's teling us that there is not much variation in the ABV for each state. But remember ABV is on percentage scale. 
+
+
+
+##Question 5: Which state has the maximum alcoholic beer? Which state has the most bitter beer?
+which.max() function in R identifies the row with maximum value for a given variable
+"Lee Hill Series Vol. 5 - Belgian Style Quadrupel Ale" from "Upslope Brewing Company" has the highest ABV of 12.8%
+"Bitter Bitch Imperial IPA" from "Astoria Brewing Company" has highest IBU of 138
+```{r}
+beer_brew[which.max(beer_brew$ABV),]
+beer_brew[which.max(beer_brew$IBU),]
+```
+##Question 6: Summary statistics for ABV (Alcohol by volume) variable.
+
+As we can see from the below ABV box plot, we have a heavy tail. 
+
+```{r}
+boxplot(beer_brew$ABV)
+```
+
+The actual values of the 5 point summary can be seen below.
+```{r}
+summary(beer_brew$ABV)
+```
+##Question 7: Is there a relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.
+ABv and IBU are both related to beers. Even though it might not make linear regression a good model without checking assumptions, it would give us an understing on how ABV and IBU are related.The below scatter plot with a linear model overlapped shows us that there is a visual evidence of a linear relationship between IBU and ABV. We can confirm our assumption by running a simple linear regression between IBU and ABV.
+
+```{r}
+ggplot(beer_brew, aes(beer_brew$ABV*100, beer_brew$IBU))+
+  geom_point(shape=1) +
+  geom_smooth(method = lm) + ggtitle("Plot of IBU vs ABV%") +
+  xlab("ABV% (ABV*100)") + ylab("IBU")
+
+```
+
+The linear regression model with just one predictor variable is given as E(Y |x) = β0 + β1x.
+
+For simple linear regression, the chief null hypothesis is H0 : β1 = 0, and the corresponding alternative hypothesis is H1 : β1 6= 0. If this null hypothesis is true, then, from E(Y ) = β0 + β1x we can see that the population mean of Y is β0 for every x value, which tells us that x has no effect on Y . The alternative is that changes in x are associated with changes in Y.
+
+```{r}
+ABV_percent<-beer_brew$ABV*100
+lm.anv_ibu<-lm(beer_brew$IBU~ABV_percent)
+summary(lm.anv_ibu)
+lm(beer_brew$IBU~ABV_percent)
+```
+
+p-value: < 2.2e-16, so we reject Null hypothesis. This suggests that there is an evidence for linear relationship between ABV and IBU. Rsquared: 0.4497, i.e 44.97% variation in IBU is explained by ABV.
+
+**Summary:**
+In this case study I made an attempt to study the beer and brewery data. I first started by performing exploratory data analysis on the data sets and combined them together to add more context. I later did a deep dive into the two specific variables ABV and IBU by looking at their medians and summary statistics. I finally concluded this study by conducting a linear regression between ABV% and IBU. This observational study suggest that there is a significant linear reglationship between ABV% and IBU content in the beer(for the observed beers), this result should however be interpreted with caution as both the variables might be correlated because of the fact that they are being measured for the same beer and brewery.
+
+**References:**
+https://stackoverflow.com/questions/8317231/elegant-way-to-report-missing-values-in-a-data-frame
+http://berghoffbeer.com/blog/what-do-abv-and-ibu-mean/
+https://www.programiz.com/r-programming/box-plot
+https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
+https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf
